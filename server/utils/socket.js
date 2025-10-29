@@ -6,9 +6,7 @@ let io;
 export function initSocket(server) {
   // Updated CORS configuration to allow multiple origins
   const allowedOrigins = [
-    "http://localhost:5173",
     "https://real-time-chatapp-frontend-xas7.onrender.com",
-    "https://real-time-chatapp-backend-foiz.onrender.com"
   ];
 
   io = new Server(server, {
