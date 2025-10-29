@@ -2,12 +2,14 @@ import { io } from "socket.io-client";
 
 let socket = null;
 export const connectSocket = (userId) => {
-  socket = io(
-    import.meta.env.MODE === "development" ? "http://localhost:4000" : "/",
-    {
-      query: { userId },
-    }
-  );
+  // Updated to use deployed backend URL in production
+  const socketURL = import.meta.env.MODE === "development" 
+    ? "http://localhost:4000" 
+    : "https://real-time-chatapp-backend-foiz.onrender.com";
+
+  socket = io(socketURL, {
+    query: { userId },
+  });
   return socket;
 };
 export const getSocket = () => socket;
