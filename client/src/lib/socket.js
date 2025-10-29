@@ -4,8 +4,8 @@ let socket = null;
 export const connectSocket = (userId) => {
   // Updated to use deployed backend URL in production
   const socketURL = import.meta.env.MODE === "development" 
-    ? "http://localhost:4000" 
-    : "https://real-time-chatapp-backend-foiz.onrender.com";
+    ? "https://real-time-chatapp-backend-foiz.onrender.com" 
+    : "/";
 
   socket = io(socketURL, {
     query: { userId },
