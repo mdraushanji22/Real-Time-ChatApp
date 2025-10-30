@@ -49,7 +49,7 @@ const Sidebar = () => {
               Show Online Only
             </label>
             <span className="text-xs text-gray-500">
-              ({onlineUsersCount} online)
+              ({onlineUsersCount-1} online)
             </span>
           </div>
         </div>
