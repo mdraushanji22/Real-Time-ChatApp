@@ -8,9 +8,9 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
-    fullName: authUser?.fullName,
-    email: authUser?.email,
-    avatar: authUser?.avatar?.url,
+    fullName: authUser?.fullName || "",
+    email: authUser?.email || "",
+    avatar: authUser?.avatar?.url || "",
   });
   const dispatch = useDispatch();
 
@@ -30,7 +30,7 @@ const Profile = () => {
       const base64Image = reader.result;
       setImagePreview(base64Image);
       setSelectedImage(file);
-      setFormData({ ...formData, avatar: file });
+      // Don't update formData here, we'll handle it in the submit function
     };
   };
 
@@ -38,14 +38,6 @@ const Profile = () => {
     // Reset image states
     setImagePreview(null);
     setSelectedImage(null);
-
-    // If user had an existing avatar, we'll set a flag to remove it
-    // Otherwise, we just clear the preview
-    if (authUser?.avatar?.url) {
-      setFormData({ ...formData, avatar: null });
-    } else {
-      setFormData({ ...formData, avatar: "" });
-    }
 
     // Clear the file input
     const fileInput = document.getElementById("avatar-upload");
@@ -63,11 +55,11 @@ const Profile = () => {
     if (selectedImage) {
       // User selected a new image
       data.append("avatar", selectedImage);
-    } else if (formData.avatar === null) {
+    } else if (imagePreview === null && authUser?.avatar?.url) {
       // User wants to remove their avatar (set to empty string to indicate removal)
       data.append("avatar", "");
     }
-    // If formData.avatar is a URL, we don't append anything, which means keep existing avatar
+    // If no new image and no removal, we don't append avatar field, which means keep existing avatar
 
     dispatch(updateProfile(data));
   };
@@ -76,8 +68,8 @@ const Profile = () => {
   const displayImage =
     imagePreview ||
     (selectedImage ? URL.createObjectURL(selectedImage) : null) ||
-    formData.avatar ||
-    "/avatar-holder.avif";
+    authUser?.avatar?.url ||
+    "/avatar-placeholder.png";
 
   return (
     <>
@@ -98,17 +90,6 @@ const Profile = () => {
                     alt="Profile"
                     className="w-32 h-32 rounded-full object-cover object-center border-4 border-gray-200"
                   />
-                  {/* Remove button - only show if there's an image to remove */}
-                  {/* {(imagePreview || formData.avatar) && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                      aria-label="Remove image"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )} */}
                   <label
                     htmlFor="avatar-upload"
                     className={`absolute bottom-0 right-0 bg-gray-800 hover:scale-105 p-2 rounded-full cursor-pointer transition-all duration-200 ${
@@ -134,7 +115,7 @@ const Profile = () => {
                       ? "uploading..."
                       : "Click the camera icon to upload your photos."}
                   </p>
-                  {(imagePreview || formData.avatar) && (
+                  {(imagePreview || authUser?.avatar?.url) && (
                     <button
                       type="button"
                       onClick={handleRemoveImage}
@@ -199,7 +180,7 @@ const Profile = () => {
                   <div className="flex items-center justify-between py-2 border-b border-gray-200">
                     <span>Member Since</span>
                     <span>
-                      {new Date(authUser?.createdAt).toLocaleDateString()}
+                      {authUser?.createdAt ? new Date(authUser.createdAt).toLocaleDateString() : "Unknown"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2">

@@ -2,7 +2,6 @@ import { Image, Send, Smile, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { getSocket } from "../lib/socket";
 import { sendMessage } from "../store/slices/chatSlice";
 import EmojiPicker from "emoji-picker-react";
 
@@ -78,25 +77,26 @@ const MessageInput = () => {
       formData.append("media", media);
     }
 
-    // Dispatch the sendMessage action but don't rely on it to update the UI
-    dispatch(sendMessage(formData));
-
-    // Reset All
-    setText("");
-    setMedia(null);
-    setMediaPreview(null);
-    setMediaType("");
-    setShowEmojiPicker(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    try {
+      // Dispatch the sendMessage action
+      await dispatch(sendMessage(formData)).unwrap();
+      
+      // Reset All on success
+      setText("");
+      setMedia(null);
+      setMediaPreview(null);
+      setMediaType("");
+      setShowEmojiPicker(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      // Keep the media and text so user can retry
+    }
   };
 
   const addEmoji = (emoji) => {
     setText(text + emoji.emoji);
   };
-
-  // Removed the useEffect hook that was handling socket events
-  // This prevents duplicate message handling
-  // Socket events are now handled exclusively in ChatContainer
 
   return (
     <>

@@ -34,19 +34,26 @@ export const getMessages = catchAsyncError(async (req, res, next) => {
   try {
     const receiverId = req.params.id;
     const myId = req.user._id;
+    
+    console.log("Get messages request:", { receiverId, myId });
+    
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(400).json({
-        success: true,
+        success: false,
         message: "Receiver Id Invalid",
       });
     }
+    
     const messages = await Message.find({
       $or: [
         { senderId: myId, receiverId: receiverId },
         { senderId: receiverId, receiverId: myId },
       ],
     }).sort({ createdAt: 1 });
+    
+    console.log("Found messages:", messages.length);
+    
     res.status(200).json({
       success: true,
       messages,
@@ -67,7 +74,7 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
     
-    console.log("Send message request:", { text, receiverId, senderId, media });
+    console.log("Send message request:", { text, receiverId, senderId, hasMedia: !!media });
     
     const receiver = await User.findById(receiverId);
     if (!receiver) {
@@ -89,6 +96,13 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
     if (media) {
       try {
         console.log("Uploading media to Cloudinary...");
+        console.log("Media file:", {
+          name: media.name,
+          size: media.size,
+          mimetype: media.mimetype,
+          tempFilePath: media.tempFilePath
+        });
+        
         const uploadResponse = await cloudinary.uploader.upload(
           media.tempFilePath,
           {
@@ -121,15 +135,23 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
     
     console.log("Message created:", newMessage);
     
+    // Populate sender and receiver info for the response
+    await newMessage.populate([
+      { path: "senderId", select: "fullName avatar" },
+      { path: "receiverId", select: "fullName avatar" }
+    ]);
+    
     // Emit to receiver
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
+      console.log("Emitting newMessage to receiver:", receiverSocketId);
       getIO().to(receiverSocketId).emit("newMessage", newMessage);
     }
     
     // Emit to sender (so they can see their own messages)
     const senderSocketId = getReceiverSocketId(senderId);
     if (senderSocketId && senderSocketId !== receiverSocketId) {
+      console.log("Emitting newMessage to sender:", senderSocketId);
       getIO().to(senderSocketId).emit("newMessage", newMessage);
     }
     

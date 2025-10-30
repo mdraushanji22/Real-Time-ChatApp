@@ -157,7 +157,14 @@ export const updateProfile = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       console.log("Updating profile with data:", data);
-      const res = await axiosInstance.put("/user/update-profile", data);
+      
+      // Ensure we're sending form data with proper content type
+      const res = await axiosInstance.put("/user/update-profile", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      
       console.log("Profile update response:", res.data);
       
       // Check if response indicates success

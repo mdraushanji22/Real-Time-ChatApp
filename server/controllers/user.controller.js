@@ -149,6 +149,7 @@ export const getUser = catchAsyncError(async (req, res, next) => {
       fullName: user.fullName,
       email: user.email,
       avatar: user.avatar,
+      createdAt: user.createdAt,
     },
   });
 });
@@ -156,8 +157,7 @@ export const getUser = catchAsyncError(async (req, res, next) => {
 export const updateProfile = catchAsyncError(async (req, res, next) => {
   try {
     console.log("Update profile request received:", req.body);
-    console.log("User from request:", req.user);
-    console.log("Files:", req.files);
+    console.log("Files received:", req.files);
     
     // Check if user exists
     if (!req.user) {
@@ -168,6 +168,9 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     }
     
     const { fullName, email } = req.body;
+    const avatar = req?.files?.avatar;
+    
+    console.log("Update data:", { fullName, email, hasAvatar: !!avatar });
     
     // Validate input
     if (fullName?.trim().length === 0 || email?.trim().length === 0) {
@@ -177,7 +180,6 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
       });
     }
     
-    const avatar = req?.files?.avatar;
     let data = {};
     
     // Update fullName if provided
@@ -201,9 +203,11 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     // Handle avatar removal or update
     if (req.body.avatar === "") {
       // User wants to remove their avatar
+      console.log("User wants to remove avatar");
       const oldAvatarPublicId = req.user?.avatar?.public_id;
       if (oldAvatarPublicId && oldAvatarPublicId.length > 0) {
         try {
+          console.log("Removing old avatar from Cloudinary:", oldAvatarPublicId);
           await cloudinary.uploader.destroy(oldAvatarPublicId);
         } catch (error) {
           console.log("Error removing avatar from Cloudinary", error);
@@ -218,12 +222,20 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     } else if (avatar) {
       // User wants to upload a new avatar
       try {
+        console.log("Uploading new avatar to Cloudinary...");
+        console.log("Avatar file:", {
+          name: avatar.name,
+          size: avatar.size,
+          mimetype: avatar.mimetype,
+          tempFilePath: avatar.tempFilePath
+        });
+        
         const oldAvatarPublicId = req.user?.avatar?.public_id;
         if (oldAvatarPublicId && oldAvatarPublicId.length > 0) {
+          console.log("Removing old avatar from Cloudinary:", oldAvatarPublicId);
           await cloudinary.uploader.destroy(oldAvatarPublicId);
         }
         
-        console.log("Uploading avatar to Cloudinary...");
         const cloudinaryResponse = await cloudinary.uploader.upload(
           avatar.tempFilePath,
           {
