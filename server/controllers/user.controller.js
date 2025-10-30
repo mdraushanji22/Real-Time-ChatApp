@@ -5,12 +5,10 @@ import { generateJWTToken } from "../utils/jwtToken.js";
 import { v2 as cloudinary } from "cloudinary";
 
 export const signup = catchAsyncError(async (req, res, next) => {
-  console.log("Signup request received:", req.body);
   const { fullName, email, password } = req.body;
   
   // Check for required fields
   if (!fullName || !email || !password) {
-    console.log("Missing required fields");
     return res.status(400).json({
       success: false,
       message: "Please provide complete details",
@@ -20,7 +18,6 @@ export const signup = catchAsyncError(async (req, res, next) => {
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    console.log("Invalid email format");
     return res.status(400).json({
       success: false,
       message: "Invalid email format",
@@ -29,7 +26,6 @@ export const signup = catchAsyncError(async (req, res, next) => {
   
   // Validate password length
   if (password.length < 8) {
-    console.log("Password too short");
     return res.status(400).json({
       success: false,
       message: "Password must be at least 8 characters long",
@@ -39,7 +35,6 @@ export const signup = catchAsyncError(async (req, res, next) => {
   // Check if email already exists
   const isEmailAlreadyUsed = await User.findOne({ email });
   if (isEmailAlreadyUsed) {
-    console.log("Email already exists");
     return res.status(400).json({
       success: false,
       message: "Email already exists",
@@ -58,17 +53,14 @@ export const signup = catchAsyncError(async (req, res, next) => {
     },
   });
   
-  console.log("User created successfully:", user._id);
   generateJWTToken(user, "Registered successfully", 201, res);
 });
 
 export const signin = catchAsyncError(async (req, res, next) => {
-  console.log("Signin request received:", req.body);
   const { email, password } = req.body;
   
   // Check for required fields
   if (!email || !password) {
-    console.log("Missing email or password");
     return res.status(400).json({
       success: false,
       message: "Please provide email and password",
@@ -78,7 +70,6 @@ export const signin = catchAsyncError(async (req, res, next) => {
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    console.log("Invalid email format");
     return res.status(400).json({
       success: false,
       message: "Invalid email format",
@@ -88,31 +79,25 @@ export const signin = catchAsyncError(async (req, res, next) => {
   // Find user by email
   const user = await User.findOne({ email });
   if (!user) {
-    console.log("User not found");
     return res.status(400).json({
       success: false,
       message: "Invalid credentials",
     });
   }
-  
-  console.log("User found:", user._id);
   
   // Compare passwords
   const isPasswordMatched = await bcrypt.compare(password, user.password);
   if (!isPasswordMatched) {
-    console.log("Password mismatch");
     return res.status(400).json({
       success: false,
       message: "Invalid credentials",
     });
   }
   
-  console.log("Password matched, generating token");
   generateJWTToken(user, "User successfully logged in", 200, res);
 });
 
 export const signout = catchAsyncError(async (req, res, next) => {
-  console.log("Signout request received");
   return res
     .status(200)
     .cookie("token", "", {
@@ -129,17 +114,6 @@ export const signout = catchAsyncError(async (req, res, next) => {
 });
 
 export const getUser = catchAsyncError(async (req, res, next) => {
-  console.log("Get user request received");
-  // Make sure we have a user
-  if (!req.user) {
-    console.log("No user in request");
-    return res.status(401).json({
-      success: false,
-      message: "User not authenticated please sign in",
-    });
-  }
-  
-  console.log("User authenticated:", req.user._id);
   const user = req.user;
   res.status(200).json({
     success: true,
@@ -148,7 +122,6 @@ export const getUser = catchAsyncError(async (req, res, next) => {
 });
 
 export const updateProfile = catchAsyncError(async (req, res, next) => {
-  console.log("Update profile request received:", req.body);
   const { fullName, email } = req.body;
   if (fullName?.trim().length === 0 || email?.trim().length === 0) {
     return res.status(400).json({
