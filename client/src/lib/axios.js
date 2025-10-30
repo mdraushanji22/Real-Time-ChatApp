@@ -8,4 +8,7 @@ const baseURL = import.meta.env.MODE === "development"
 export const axiosInstance = axios.create({
   baseURL,
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });

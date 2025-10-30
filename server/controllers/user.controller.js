@@ -55,6 +55,7 @@ export const signup = catchAsyncError(async (req, res, next) => {
   
   generateJWTToken(user, "Registered successfully", 201, res);
 });
+
 export const signin = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
   
@@ -107,11 +108,19 @@ export const signout = catchAsyncError(async (req, res, next) => {
     })
     .json({
       success: true,
-      message: "User logout succesfully",
+      message: "User logout successfully",
     });
 });
 
 export const getUser = catchAsyncError(async (req, res, next) => {
+  // Make sure we have a user
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: "User not authenticated please sign in",
+    });
+  }
+  
   const user = req.user;
   res.status(200).json({
     success: true,

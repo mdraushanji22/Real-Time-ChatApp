@@ -12,21 +12,32 @@ export const getUser = createAsyncThunk("user/me", async (_, thunkAPI) => {
       return thunkAPI.rejectWithValue(res.data.message || "Failed to fetch user");
     }
     
-    connectSocket(res.data.user);
+    // Connect socket with user ID
+    connectSocket(res.data.user._id);
     return res.data.user;
   } catch (error) {
     const errorMessage = error.response?.data?.message || "Failed to fetch user";
     return thunkAPI.rejectWithValue(errorMessage);
   }
 });
+
 export const logout = createAsyncThunk("user/sign-out", async (_, thunkAPI) => {
   try {
-    await axiosInstance.get("/user/sign-out");
+    const res = await axiosInstance.get("/user/sign-out");
+    
+    // Check if response indicates success
+    if (!res.data.success) {
+      toast.error(res.data.message || "Logout failed");
+      return thunkAPI.rejectWithValue(res.data.message || "Logout failed");
+    }
+    
     disconnectSocket();
-    return null; //User logout successfully
+    toast.success(res.data.message || "Logged out successfully");
+    return null;
   } catch (error) {
-    toast.error(error.response.data.message);
-    return thunkAPI.rejectWithValue(error.response.data.value);
+    const errorMessage = error.response?.data?.message || "Logout failed";
+    toast.error(errorMessage);
+    return thunkAPI.rejectWithValue(errorMessage);
   }
 });
 
@@ -34,6 +45,13 @@ export const login = createAsyncThunk(
   "user/sign-in",
   async (data, thunkAPI) => {
     try {
+      // Validate input
+      if (!data.email || !data.password) {
+        const errorMessage = "Please provide email and password";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
       const res = await axiosInstance.post("/user/sign-in", data);
       
       // Check if response indicates success
@@ -42,9 +60,10 @@ export const login = createAsyncThunk(
         return thunkAPI.rejectWithValue(res.data.message);
       }
       
-      connectSocket(res.data.user || res.data);
+      // Connect socket with user ID
+      connectSocket(res.data.user._id);
       toast.success(res.data.message || "Logged in successfully");
-      return res.data;
+      return res.data.user;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Login failed";
       toast.error(errorMessage);
@@ -52,10 +71,33 @@ export const login = createAsyncThunk(
     }
   }
 );
+
 export const signup = createAsyncThunk(
   "auth/sign-up",
   async (data, thunkAPI) => {
     try {
+      // Validate input
+      if (!data.fullName || !data.email || !data.password) {
+        const errorMessage = "Please provide complete details";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        const errorMessage = "Invalid email format";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
+      // Validate password length
+      if (data.password.length < 8) {
+        const errorMessage = "Password must be at least 8 characters long";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
       const res = await axiosInstance.post("/user/sign-up", data);
       
       // Check if response indicates success
@@ -64,9 +106,10 @@ export const signup = createAsyncThunk(
         return thunkAPI.rejectWithValue(res.data.message);
       }
       
-      connectSocket(res.data.user || res.data);
+      // Connect socket with user ID
+      connectSocket(res.data.user._id);
       toast.success(res.data.message || "Account created successfully");
-      return res.data;
+      return res.data.user;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Registration failed";
       toast.error(errorMessage);
@@ -74,6 +117,7 @@ export const signup = createAsyncThunk(
     }
   }
 );
+
 export const updateProfile = createAsyncThunk(
   "user/update-profile",
   async (data, thunkAPI) => {
@@ -87,7 +131,7 @@ export const updateProfile = createAsyncThunk(
       }
       
       toast.success(res.data.message || "Profile updated successfully");
-      return res.data;
+      return res.data.user;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Profile update failed";
       toast.error(errorMessage);
@@ -125,7 +169,7 @@ const authSlice = createSlice({
         state.authUser = null;
       })
       .addCase(logout.rejected, (state) => {
-        state.authUser = state.authUser;
+        state.authUser = null;
       })
       .addCase(login.pending, (state) => {
         state.isLoggingIn = true;
@@ -136,6 +180,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state) => {
         state.isLoggingIn = false;
+        state.authUser = null;
       })
       .addCase(signup.pending, (state) => {
         state.isSigningUp = true;
@@ -146,6 +191,7 @@ const authSlice = createSlice({
       })
       .addCase(signup.rejected, (state) => {
         state.isSigningUp = false;
+        state.authUser = null;
       })
       .addCase(updateProfile.pending, (state) => {
         state.isUpdatingProfile = true;
@@ -159,5 +205,6 @@ const authSlice = createSlice({
       });
   },
 });
+
 export const { setOnlineUsers } = authSlice.actions;
 export default authSlice.reducer;
