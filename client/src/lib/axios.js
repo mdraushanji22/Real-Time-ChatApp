@@ -16,7 +16,13 @@ axiosInstance.interceptors.request.use(
   (config) => {
     // Ensure credentials are sent with every request
     config.withCredentials = true;
-    console.log("Making request:", config.method, config.url);
+    console.log("=== AXIOS REQUEST ===");
+    console.log("Method:", config.method);
+    console.log("URL:", config.url);
+    console.log("Base URL:", config.baseURL);
+    console.log("Full URL:", config.baseURL + config.url);
+    console.log("Headers:", config.headers);
+    console.log("With credentials:", config.withCredentials);
     return config;
   },
   (error) => {
@@ -28,13 +34,22 @@ axiosInstance.interceptors.request.use(
 // Add response interceptor to handle errors
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log("Response received:", response.status, response.config.url);
+    console.log("=== AXIOS RESPONSE ===");
+    console.log("Status:", response.status);
+    console.log("URL:", response.config.url);
+    console.log("Response data:", response.data);
     return response;
   },
   (error) => {
     // Log error details for debugging
-    console.error("Axios error:", error);
-    console.error("Error response:", error.response);
+    console.error("=== AXIOS ERROR ===");
+    console.error("Error:", error);
+    console.error("Error message:", error.message);
+    if (error.response) {
+      console.error("Error response status:", error.response.status);
+      console.error("Error response data:", error.response.data);
+      console.error("Error response headers:", error.response.headers);
+    }
     return Promise.reject(error);
   }
 );

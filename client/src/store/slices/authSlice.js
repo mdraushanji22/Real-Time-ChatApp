@@ -35,6 +35,21 @@ export const login = createAsyncThunk(
   "user/sign-in",
   async (data, thunkAPI) => {
     try {
+      // Validate input before sending request
+      if (!data.email || !data.password) {
+        const errorMessage = "Please provide email and password";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        const errorMessage = "Invalid email format";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
       const res = await axiosInstance.post("/user/sign-in", data);
       
       // Check if response indicates success
@@ -58,6 +73,28 @@ export const signup = createAsyncThunk(
   "auth/sign-up",
   async (data, thunkAPI) => {
     try {
+      // Validate input before sending request
+      if (!data.fullName || !data.email || !data.password) {
+        const errorMessage = "Please provide complete details";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        const errorMessage = "Invalid email format";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
+      // Validate password length
+      if (data.password.length < 8) {
+        const errorMessage = "Password must be at least 8 characters long";
+        toast.error(errorMessage);
+        return thunkAPI.rejectWithValue(errorMessage);
+      }
+      
       const res = await axiosInstance.post("/user/sign-up", data);
       
       // Check if response indicates success

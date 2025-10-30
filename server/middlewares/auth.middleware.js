@@ -3,11 +3,12 @@ import { User } from "../models/user.model.js";
 import catchAsyncError from "./catchAsyncError.middleware.js";
 
 export const isAuthenticated = catchAsyncError(async (req, res, next) => {
-  console.log("Authentication middleware called");
-  console.log("Cookies:", req.cookies);
-  console.log("Headers:", req.headers);
+  console.log("=== AUTHENTICATION MIDDLEWARE ===");
   console.log("Method:", req.method);
   console.log("URL:", req.url);
+  console.log("Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
+  console.log("Cookies:", req.cookies);
+  console.log("Headers:", req.headers);
   
   // Get token from cookies
   const { token } = req.cookies;
@@ -24,7 +25,7 @@ export const isAuthenticated = catchAsyncError(async (req, res, next) => {
   
   // Check if token exists
   if (!finalToken) {
-    console.log("No token found");
+    console.log("No token found - returning 401");
     return res.status(401).json({
       success: false,
       message: "User not authenticated please sign in",

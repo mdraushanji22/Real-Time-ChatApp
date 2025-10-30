@@ -27,19 +27,26 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean); // Filter out any undefined values
 
+console.log("=== CORS CONFIGURATION ===");
 console.log("Allowed origins:", allowedOrigins);
 console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      console.log("CORS request from origin:", origin);
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        console.log("No origin, allowing request");
+        return callback(null, true);
+      }
       
       if (allowedOrigins.indexOf(origin) !== -1) {
+        console.log("Origin allowed");
         callback(null, true);
       } else {
-        console.log("Origin not allowed:", origin);
+        console.log("Origin not allowed");
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -65,8 +72,12 @@ app.use(
 
 // Add logging middleware for debugging
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  console.log("=== INCOMING REQUEST ===");
+  console.log("Method:", req.method);
+  console.log("Path:", req.path);
+  console.log("URL:", req.url);
   console.log("Cookies:", req.cookies);
+  console.log("Headers:", req.headers);
   next();
 });
 
