@@ -6,7 +6,10 @@ let io;
 export function initSocket(server) {
   io = new Server(server, {
     cors: {
-      origin: [process.env.FRONTEND_URL], // Connection stablish only frontend url
+      origin: process.env.NODE_ENV === "development" 
+        ? [process.env.FRONTEND_URL, "http://localhost:5173"] 
+        : [process.env.FRONTEND_URL],
+      credentials: true,
     },
   });
   io.on("connection", (socket) => {

@@ -6,12 +6,16 @@ import { v2 as cloudinary } from "cloudinary";
 
 export const signup = catchAsyncError(async (req, res, next) => {
   const { fullName, email, password } = req.body;
+  
+  // Check for required fields
   if (!fullName || !email || !password) {
     return res.status(400).json({
       success: false,
       message: "Please provide complete details",
     });
   }
+  
+  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({
@@ -19,19 +23,25 @@ export const signup = catchAsyncError(async (req, res, next) => {
       message: "Invalid email format",
     });
   }
+  
+  // Validate password length
   if (password.length < 8) {
     return res.status(400).json({
       success: false,
-      message: "password must be atleast 8 character long",
+      message: "Password must be at least 8 characters long",
     });
   }
+  
+  // Check if email already exists
   const isEmailAlreadyUsed = await User.findOne({ email });
   if (isEmailAlreadyUsed) {
     return res.status(400).json({
       success: false,
-      message: "Email Already Exit",
+      message: "Email already exists",
     });
   }
+  
+  // Hash password and create user
   const hashPassword = await bcrypt.hash(password, 10);
   const user = await User.create({
     fullName,
@@ -42,16 +52,21 @@ export const signup = catchAsyncError(async (req, res, next) => {
       url: "",
     },
   });
-  generateJWTToken(user, "Register succesfully", 201, res);
+  
+  generateJWTToken(user, "Registered successfully", 201, res);
 });
 export const signin = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
+  
+  // Check for required fields
   if (!email || !password) {
     return res.status(400).json({
       success: false,
-      message: "please provide email and password",
+      message: "Please provide email and password",
     });
   }
+  
+  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({
@@ -59,13 +74,17 @@ export const signin = catchAsyncError(async (req, res, next) => {
       message: "Invalid email format",
     });
   }
+  
+  // Find user by email
   const user = await User.findOne({ email });
   if (!user) {
     return res.status(400).json({
       success: false,
-      message: "Invalid Credentials",
+      message: "Invalid credentials",
     });
   }
+  
+  // Compare passwords
   const isPasswordMatched = await bcrypt.compare(password, user.password);
   if (!isPasswordMatched) {
     return res.status(400).json({
@@ -73,7 +92,8 @@ export const signin = catchAsyncError(async (req, res, next) => {
       message: "Invalid credentials",
     });
   }
-  generateJWTToken(user, "User Successfull LoggedIn", 200, res);
+  
+  generateJWTToken(user, "User successfully logged in", 200, res);
 });
 
 export const signout = catchAsyncError(async (req, res, next) => {
@@ -83,7 +103,7 @@ export const signout = catchAsyncError(async (req, res, next) => {
       maxAge: 0,
       httpOnly: true,
       sameSite: "strict",
-      secure: process.env.NODE_ENV === "development" ? true : false,
+      secure: process.env.NODE_ENV === "production" ? true : false,
     })
     .json({
       success: true,

@@ -6,12 +6,17 @@ import { toast } from "react-toastify";
 export const getUser = createAsyncThunk("user/me", async (_, thunkAPI) => {
   try {
     const res = await axiosInstance.get("/user/me");
+    
+    // Check if response indicates success
+    if (!res.data.success) {
+      return thunkAPI.rejectWithValue(res.data.message || "Failed to fetch user");
+    }
+    
     connectSocket(res.data.user);
     return res.data.user;
   } catch (error) {
-    return thunkAPI.rejectWithValue(
-      error.response?.data || "Failed to fetch user"
-    );
+    const errorMessage = error.response?.data?.message || "Failed to fetch user";
+    return thunkAPI.rejectWithValue(errorMessage);
   }
 });
 export const logout = createAsyncThunk("user/sign-out", async (_, thunkAPI) => {
@@ -30,12 +35,20 @@ export const login = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.post("/user/sign-in", data);
-      connectSocket(res.data);
-      toast.success("Logged in Successfully");
+      
+      // Check if response indicates success
+      if (!res.data.success) {
+        toast.error(res.data.message || "Login failed");
+        return thunkAPI.rejectWithValue(res.data.message);
+      }
+      
+      connectSocket(res.data.user || res.data);
+      toast.success(res.data.message || "Logged in successfully");
       return res.data;
     } catch (error) {
-      toast.error(error.response.data.message);
-      return thunkAPI.rejectWithValue(error.response.data.value);
+      const errorMessage = error.response?.data?.message || "Login failed";
+      toast.error(errorMessage);
+      return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );
@@ -44,12 +57,20 @@ export const signup = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.post("/user/sign-up", data);
-      connectSocket(res.data);
-      toast.success("Account Created successfully");
+      
+      // Check if response indicates success
+      if (!res.data.success) {
+        toast.error(res.data.message || "Registration failed");
+        return thunkAPI.rejectWithValue(res.data.message);
+      }
+      
+      connectSocket(res.data.user || res.data);
+      toast.success(res.data.message || "Account created successfully");
       return res.data;
     } catch (error) {
-      toast.error(error.response.data.message);
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const errorMessage = error.response?.data?.message || "Registration failed";
+      toast.error(errorMessage);
+      return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );
@@ -58,11 +79,19 @@ export const updateProfile = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.put("/user/update-profile", data);
-      toast.success("Profile updated successfully");
+      
+      // Check if response indicates success
+      if (!res.data.success) {
+        toast.error(res.data.message || "Profile update failed");
+        return thunkAPI.rejectWithValue(res.data.message);
+      }
+      
+      toast.success(res.data.message || "Profile updated successfully");
       return res.data;
     } catch (error) {
-      toast.error(error.response.data.message);
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const errorMessage = error.response?.data?.message || "Profile update failed";
+      toast.error(errorMessage);
+      return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );

@@ -10,18 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emoji-mart/data": "^1.2.1",
-    "@emoji-mart/react": "^1.1.1",
     "@reduxjs/toolkit": "^2.9.0",
     "axios": "^1.12.2",
-    "emoji-mart": "^5.6.0",
     "lucide-react": "^0.522.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.0",
     "react-toastify": "^11.0.5",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "emoji-picker-react": "^4.12.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
