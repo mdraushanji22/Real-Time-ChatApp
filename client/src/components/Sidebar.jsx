@@ -17,6 +17,9 @@ const Sidebar = () => {
     dispatch(getUsers());
   }, [dispatch]);
 
+  // Calculate online users count (excluding the current user)
+  const onlineUsersCount = onlineUsers ? onlineUsers.length : 0;
+
   const filteredUsers = showOnlineOnly
     ? users?.filter((user) => onlineUsers.includes(user._id))
     : users;
@@ -46,7 +49,7 @@ const Sidebar = () => {
               Show Online Only
             </label>
             <span className="text-xs text-gray-500">
-              ({onlineUsers.length - 2} online)
+              ({onlineUsersCount} online)
             </span>
           </div>
         </div>
