@@ -27,6 +27,9 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean); // Filter out any undefined values
 
+console.log("Allowed origins:", allowedOrigins);
+console.log("NODE_ENV:", process.env.NODE_ENV);
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -36,12 +39,14 @@ app.use(
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
+        console.log("Origin not allowed:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Set-Cookie"]
   })
 );
 
@@ -55,6 +60,12 @@ app.use(
     tempFileDir: "./temp/",
   })
 );
+
+// Add logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 
 // API Routes
 app.use("/api/v1/user", userRouter);

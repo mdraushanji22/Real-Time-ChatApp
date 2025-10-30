@@ -12,3 +12,30 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Add request interceptor to log requests
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log("Making request to:", config.url);
+    console.log("Request config:", config);
+    return config;
+  },
+  (error) => {
+    console.error("Request error:", error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to log responses
+axiosInstance.interceptors.response.use(
+  (response) => {
+    console.log("Response received:", response.status, response.config.url);
+    console.log("Response data:", response.data);
+    return response;
+  },
+  (error) => {
+    console.error("Response error:", error.response?.status, error.response?.config?.url);
+    console.error("Error data:", error.response?.data);
+    return Promise.reject(error);
+  }
+);
