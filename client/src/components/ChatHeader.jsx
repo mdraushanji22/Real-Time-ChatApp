@@ -6,10 +6,6 @@ const ChatHeader = () => {
   const { selectedUser } = useSelector((state) => state.chat);
   const { onlineUsers } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-  
-  // Count online users (excluding the current user)
-  const onlineUsersCount = onlineUsers ? onlineUsers.length : 0;
-  
   return (
     <>
       <div className="p-3 border-b bg-gray-200 ring-1 ring-gray-300">
@@ -28,6 +24,7 @@ const ChatHeader = () => {
               )}
             </div>
             {/* Name and Status */}
+
             <div>
               <h3 className="font-medium text-base text-black">
                 {selectedUser?.fullName}
@@ -37,19 +34,13 @@ const ChatHeader = () => {
               </p>
             </div>
           </div>
-          
-          {/* Online Users Count */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">
-              {onlineUsersCount} online
-            </span>
-            <button
-              onClick={() => dispatch(setSelectedUser(null))}
-              className="text-gray-800 hover:text-black transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          {/* Close Button */}
+          <button
+            onClick={() => dispatch(setSelectedUser(null))}
+            className="text-gray-800 hover:text-black transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </>
