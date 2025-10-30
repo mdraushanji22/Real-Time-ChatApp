@@ -65,7 +65,7 @@ app.use("/api/v1/message", messageRouter);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
-  app.get("*", (req, res) => {
+  app.get(/.*/, (req, res) => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"));
