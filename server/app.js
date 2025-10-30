@@ -66,6 +66,7 @@ app.use(
 // Add logging middleware for debugging
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
+  console.log("Cookies:", req.cookies);
   next();
 });
 

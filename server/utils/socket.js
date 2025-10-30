@@ -11,6 +11,8 @@ export function initSocket(server) {
     process.env.FRONTEND_URL
   ].filter(Boolean); // Filter out any undefined values
 
+  console.log("Initializing socket with allowed origins:", allowedOrigins);
+
   io = new Server(server, {
     cors: {
       origin: allowedOrigins,
@@ -23,6 +25,8 @@ export function initSocket(server) {
   io.on("connection", (socket) => {
     console.log("A User connected to the server", socket.id); // send socket.id from frontend
     const userId = socket.handshake.query.userId; // get user id
+    
+    console.log("User ID from handshake:", userId);
     
     // Validate userId
     if (userId && typeof userId === 'string') {

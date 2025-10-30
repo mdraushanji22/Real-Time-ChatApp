@@ -6,6 +6,8 @@ export const isAuthenticated = catchAsyncError(async (req, res, next) => {
   console.log("Authentication middleware called");
   console.log("Cookies:", req.cookies);
   console.log("Headers:", req.headers);
+  console.log("Method:", req.method);
+  console.log("URL:", req.url);
   
   // Get token from cookies
   const { token } = req.cookies;

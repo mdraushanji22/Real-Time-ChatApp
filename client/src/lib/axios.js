@@ -16,9 +16,11 @@ axiosInstance.interceptors.request.use(
   (config) => {
     // Ensure credentials are sent with every request
     config.withCredentials = true;
+    console.log("Making request:", config.method, config.url);
     return config;
   },
   (error) => {
+    console.error("Request error:", error);
     return Promise.reject(error);
   }
 );
@@ -26,11 +28,13 @@ axiosInstance.interceptors.request.use(
 // Add response interceptor to handle errors
 axiosInstance.interceptors.response.use(
   (response) => {
+    console.log("Response received:", response.status, response.config.url);
     return response;
   },
   (error) => {
     // Log error details for debugging
     console.error("Axios error:", error);
+    console.error("Error response:", error.response);
     return Promise.reject(error);
   }
 );
