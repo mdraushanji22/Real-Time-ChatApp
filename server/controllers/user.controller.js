@@ -144,87 +144,140 @@ export const getUser = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   res.status(200).json({
     success: true,
-    user,
+    user: {
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      avatar: user.avatar,
+    },
   });
 });
 
 export const updateProfile = catchAsyncError(async (req, res, next) => {
-  console.log("Update profile request received:", req.body);
-  const { fullName, email } = req.body;
-  if (fullName?.trim().length === 0 || email?.trim().length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "FullName and email can't be empty",
-    });
-  }
-
-  const avatar = req?.files?.avatar;
-  let data = {
-    fullName,
-    email,
-  };
-
-  // Handle avatar removal or update
-  if (req.body.avatar === "") {
-    // User wants to remove their avatar
-    const oldAvatarPublicId = req.user?.avatar?.public_id;
-    if (oldAvatarPublicId && oldAvatarPublicId.length > 0) {
-      try {
-        await cloudinary.uploader.destroy(oldAvatarPublicId);
-      } catch (error) {
-        console.log("Error removing avatar from Cloudinary", error);
-      }
-    }
-
-    // Set avatar to default values
-    data.avatar = {
-      public_id: "",
-      url: "",
-    };
-  } else if (avatar) {
-    // User wants to upload a new avatar
-    try {
-      const oldAvatarPublicId = req.user?.avatar?.public_id;
-      if (oldAvatarPublicId && oldAvatarPublicId.length > 0) {
-        await cloudinary.uploader.destroy(oldAvatarPublicId);
-      }
-
-      const cloudinaryResponse = await cloudinary.uploader.upload(
-        avatar.tempFilePath,
-        {
-          folder: "CHAT-APP-USER-AVATARS",
-          transformation: [
-            { width: 300, height: 300, crop: "limit" },
-            { quality: "auto" },
-            { fetch_format: "auto" },
-          ],
-        }
-      );
-
-      if (cloudinaryResponse?.public_id && cloudinaryResponse?.secure_url) {
-        data.avatar = {
-          public_id: cloudinaryResponse.public_id,
-          url: cloudinaryResponse.secure_url,
-        };
-      }
-    } catch (error) {
-      console.log("Cloudinary upload Error", error);
-      return res.status(500).json({
+  try {
+    console.log("Update profile request received:", req.body);
+    console.log("User from request:", req.user);
+    console.log("Files:", req.files);
+    
+    // Check if user exists
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        message: "Failed to upload avatar please try again later",
+        message: "User not authenticated please sign in",
       });
     }
+    
+    const { fullName, email } = req.body;
+    
+    // Validate input
+    if (fullName?.trim().length === 0 || email?.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "FullName and email can't be empty",
+      });
+    }
+    
+    const avatar = req?.files?.avatar;
+    let data = {};
+    
+    // Update fullName if provided
+    if (fullName && fullName.trim().length > 0) {
+      data.fullName = fullName.trim();
+    }
+    
+    // Update email if provided
+    if (email && email.trim().length > 0) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email format",
+        });
+      }
+      data.email = email.trim();
+    }
+    
+    // Handle avatar removal or update
+    if (req.body.avatar === "") {
+      // User wants to remove their avatar
+      const oldAvatarPublicId = req.user?.avatar?.public_id;
+      if (oldAvatarPublicId && oldAvatarPublicId.length > 0) {
+        try {
+          await cloudinary.uploader.destroy(oldAvatarPublicId);
+        } catch (error) {
+          console.log("Error removing avatar from Cloudinary", error);
+        }
+      }
+      
+      // Set avatar to default values
+      data.avatar = {
+        public_id: "",
+        url: "",
+      };
+    } else if (avatar) {
+      // User wants to upload a new avatar
+      try {
+        const oldAvatarPublicId = req.user?.avatar?.public_id;
+        if (oldAvatarPublicId && oldAvatarPublicId.length > 0) {
+          await cloudinary.uploader.destroy(oldAvatarPublicId);
+        }
+        
+        console.log("Uploading avatar to Cloudinary...");
+        const cloudinaryResponse = await cloudinary.uploader.upload(
+          avatar.tempFilePath,
+          {
+            folder: "CHAT-APP-USER-AVATARS",
+            transformation: [
+              { width: 300, height: 300, crop: "limit" },
+              { quality: "auto" },
+              { fetch_format: "auto" },
+            ],
+          }
+        );
+        
+        console.log("Cloudinary response:", cloudinaryResponse);
+        
+        if (cloudinaryResponse?.public_id && cloudinaryResponse?.secure_url) {
+          data.avatar = {
+            public_id: cloudinaryResponse.public_id,
+            url: cloudinaryResponse.secure_url,
+          };
+        }
+      } catch (error) {
+        console.log("Cloudinary upload Error", error);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload avatar please try again later",
+        });
+      }
+    }
+    
+    console.log("Updating user with data:", data);
+    
+    // Update user
+    const user = await User.findByIdAndUpdate(req.user._id, data, {
+      new: true,
+      runValidators: true,
+    });
+    
+    console.log("User updated:", user);
+    
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while updating profile",
+    });
   }
-  // If neither condition is met, the avatar field is not updated (keeps existing value)
-
-  const user = await User.findByIdAndUpdate(req.user._id, data, {
-    new: true,
-    runValidators: true,
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "Profile updated successfully",
-    user,
-  });
 });
