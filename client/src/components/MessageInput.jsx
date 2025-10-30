@@ -4,8 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getSocket } from "../lib/socket";
 import { sendMessage } from "../store/slices/chatSlice";
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
+import EmojiPicker from "emoji-picker-react";
 
 const MessageInput = () => {
   const [text, setText] = useState("");
@@ -92,7 +91,7 @@ const MessageInput = () => {
   };
 
   const addEmoji = (emoji) => {
-    setText(text + emoji.native);
+    setText(text + emoji.emoji);
   };
 
   // Removed the useEffect hook that was handling socket events
@@ -174,7 +173,7 @@ const MessageInput = () => {
         </form>
         {showEmojiPicker && (
           <div ref={emojiPickerRef} className="absolute bottom-16 right-0 z-10">
-            <Picker data={data} onEmojiSelect={addEmoji} />
+            <EmojiPicker onEmojiClick={addEmoji} />
           </div>
         )}
       </div>

@@ -4,12 +4,17 @@ const userSocketMap = {}; //Mapping... User id with socketMap
 let io;
 
 export function initSocket(server) {
+  // Updated CORS configuration to allow multiple origins
+  const allowedOrigins = [
+    "https://real-time-chatapp-frontend-xas7.onrender.com",
+    "http://localhost:5173",
+    process.env.FRONTEND_URL
+  ].filter(Boolean); // Filter out any undefined values
+
   io = new Server(server, {
     cors: {
-      origin: process.env.NODE_ENV === "development" 
-        ? [process.env.FRONTEND_URL, "http://localhost:5173"] 
-        : [process.env.FRONTEND_URL],
-      credentials: true,
+      origin: allowedOrigins,
+      credentials: true
     },
   });
   io.on("connection", (socket) => {
