@@ -23,12 +23,14 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Add response interceptor to log responses
+// Add response interceptor to handle errors
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
+    // Log error details for debugging
+    console.error("Axios error:", error);
     return Promise.reject(error);
   }
 );

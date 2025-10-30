@@ -26,8 +26,8 @@ export const logout = createAsyncThunk("user/sign-out", async (_, thunkAPI) => {
     disconnectSocket();
     return null; //User logout successfully
   } catch (error) {
-    toast.error(error.response.data.message);
-    return thunkAPI.rejectWithValue(error.response.data.value);
+    toast.error(error.response?.data?.message || "Logout failed");
+    return thunkAPI.rejectWithValue(error.response?.data?.message || "Logout failed");
   }
 });
 

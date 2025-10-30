@@ -15,6 +15,9 @@ export const generateJWTToken = async (user, message, statusCode, res) => {
     path: "/",
   };
   
+  console.log("Setting cookie with options:", cookieOptions);
+  console.log("Generated token:", token);
+  
   // Send response with token in cookie and body
   return res
     .status(statusCode)
