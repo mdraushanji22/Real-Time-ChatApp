@@ -21,6 +21,12 @@ export const getUser = createAsyncThunk("user/me", async (_, thunkAPI) => {
   } catch (error) {
     console.error("Error fetching user:", error);
     const errorMessage = error.response?.data?.message || "Failed to fetch user";
+    
+    // Remove token on 401 error
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+    }
+    
     return thunkAPI.rejectWithValue(errorMessage);
   }
 });
@@ -32,10 +38,15 @@ export const logout = createAsyncThunk("user/sign-out", async (_, thunkAPI) => {
     console.log("Logout response:", res.data);
     
     disconnectSocket();
+    localStorage.removeItem("token");
     return null; //User logout successfully
   } catch (error) {
     console.error("Error logging out:", error);
     toast.error(error.response?.data?.message || "Logout failed");
+    
+    // Remove token even on error
+    localStorage.removeItem("token");
+    
     return thunkAPI.rejectWithValue(error.response?.data?.message || "Logout failed");
   }
 });
@@ -67,6 +78,11 @@ export const login = createAsyncThunk(
       if (!res.data.success) {
         toast.error(res.data.message || "Login failed");
         return thunkAPI.rejectWithValue(res.data.message);
+      }
+      
+      // Store token
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
       }
       
       console.log("Connecting socket with user:", res.data.user);
@@ -116,6 +132,11 @@ export const signup = createAsyncThunk(
       if (!res.data.success) {
         toast.error(res.data.message || "Registration failed");
         return thunkAPI.rejectWithValue(res.data.message);
+      }
+      
+      // Store token
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
       }
       
       console.log("Connecting socket with user:", res.data.user);
@@ -170,6 +191,10 @@ const authSlice = createSlice({
     setOnlineUsers(state, action) {
       state.onlineUsers = action.payload;
     },
+    logoutUser(state) {
+      state.authUser = null;
+      localStorage.removeItem("token");
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -189,7 +214,7 @@ const authSlice = createSlice({
       })
       .addCase(logout.rejected, (state) => {
         console.log("Logout rejected");
-        state.authUser = state.authUser;
+        state.authUser = null;
       })
       .addCase(login.pending, (state) => {
         console.log("Login pending");
@@ -203,6 +228,7 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         console.log("Login rejected:", action.payload);
         state.isLoggingIn = false;
+        state.authUser = null;
       })
       .addCase(signup.pending, (state) => {
         console.log("Signup pending");
@@ -216,6 +242,7 @@ const authSlice = createSlice({
       .addCase(signup.rejected, (state, action) => {
         console.log("Signup rejected:", action.payload);
         state.isSigningUp = false;
+        state.authUser = null;
       })
       .addCase(updateProfile.pending, (state) => {
         console.log("Profile update pending");
@@ -233,5 +260,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setOnlineUsers } = authSlice.actions;
+export const { setOnlineUsers, logoutUser } = authSlice.actions;
 export default authSlice.reducer;

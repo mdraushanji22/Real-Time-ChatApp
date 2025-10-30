@@ -17,8 +17,12 @@ export const generateJWTToken = async (user, message, statusCode, res) => {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     secure: process.env.NODE_ENV === "production", // Only secure in production
     path: "/",
-    domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
   };
+  
+  // Add domain only if explicitly set in environment variables
+  if (process.env.COOKIE_DOMAIN) {
+    cookieOptions.domain = process.env.COOKIE_DOMAIN;
+  }
   
   console.log("Setting cookie with options:", cookieOptions);
   
