@@ -66,6 +66,9 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
     const media = req?.files?.media;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
+    
+    console.log("Send message request:", { text, receiverId, senderId, media });
+    
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(400).json({
@@ -73,6 +76,7 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
         message: "Receiver Id Invalid",
       });
     }
+    
     const sanitizedText = text?.trim() || "";
     if (!sanitizedText && !media) {
       return res.status(400).json({
@@ -80,9 +84,11 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
         message: "Cannot send empty message.",
       });
     }
+    
     let mediaUrl = "";
     if (media) {
       try {
+        console.log("Uploading media to Cloudinary...");
         const uploadResponse = await cloudinary.uploader.upload(
           media.tempFilePath,
           {
@@ -96,20 +102,24 @@ export const sendMessage = catchAsyncError(async (req, res, next) => {
           }
         );
         mediaUrl = uploadResponse?.secure_url;
+        console.log("Media uploaded successfully:", mediaUrl);
       } catch (error) {
-        console.log("Cloudinary uploaded Error", error);
+        console.log("Cloudinary upload Error", error);
         return res.status(500).json({
           success: false,
           message: "Failed to upload media please try again later",
         });
       }
     }
+    
     const newMessage = await Message.create({
       senderId,
       receiverId,
       text: sanitizedText,
       media: mediaUrl,
     });
+    
+    console.log("Message created:", newMessage);
     
     // Emit to receiver
     const receiverSocketId = getReceiverSocketId(receiverId);
