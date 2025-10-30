@@ -10,9 +10,9 @@ export const generateJWTToken = async (user, message, statusCode, res) => {
   const cookieOptions = {
     maxAge: process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000, // Convert days to milliseconds
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict", // Use "none" for production with cross-origin requests
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     secure: process.env.NODE_ENV === "production", // Only secure in production
-    path: "/", // Make sure cookie is available for all paths
+    path: "/",
   };
   
   console.log("Setting cookie with options:", cookieOptions);

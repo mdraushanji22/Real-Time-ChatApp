@@ -14,8 +14,10 @@ export function initSocket(server) {
   io = new Server(server, {
     cors: {
       origin: allowedOrigins,
-      credentials: true
+      credentials: true,
+      methods: ["GET", "POST"],
     },
+    transports: ["websocket", "polling"],
   });
   
   io.on("connection", (socket) => {

@@ -13,11 +13,13 @@ export const axiosInstance = axios.create({
   },
 });
 
-// Add request interceptor to log requests
+// Add request interceptor to ensure credentials are sent
 axiosInstance.interceptors.request.use(
   (config) => {
     console.log("Making request to:", config.url);
     console.log("Request config:", config);
+    // Ensure credentials are sent with every request
+    config.withCredentials = true;
     return config;
   },
   (error) => {

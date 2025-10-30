@@ -12,6 +12,7 @@ export const connectSocket = (userId) => {
     {
       query: { userId },
       withCredentials: true,
+      transports: ['websocket', 'polling'],
     }
   );
   return socket;
