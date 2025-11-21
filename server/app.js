@@ -14,7 +14,7 @@ const app = express();
 config({ path: "./config/config.env" });
 
 // Serve static files in production
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" && process.env.SERVE_CLIENT === "true") {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   app.use(express.static(path.resolve(__dirname, "../client/dist")));
@@ -86,7 +86,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/message", messageRouter);
 
 // Serve frontend in production
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" && process.env.SERVE_CLIENT === "true") {
   app.get(/.*/, (req, res) => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
