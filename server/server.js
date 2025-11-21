@@ -22,10 +22,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Test Cloudinary connection
-cloudinary.uploader.ping()
-  .then(result => console.log("Cloudinary connection successful:", result))
-  .catch(error => console.error("Cloudinary connection failed:", error));
+// Test Cloudinary connection (optional health check, does not block server start)
+try {
+  cloudinary.api
+    .ping()
+    .then((result) => console.log("Cloudinary connection successful:", result))
+    .catch((error) => console.error("Cloudinary connection failed:", error));
+} catch (error) {
+  console.error("Cloudinary ping threw an error:", error);
+}
 
 const server = http.createServer(app);
 initSocket(server);
